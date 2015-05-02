@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
 import urllib2
 import re
-
+import time
+import os
 
 def try_url(url):
     """For testing if the URL is a valid page"""
@@ -14,13 +15,14 @@ def try_url(url):
 
 
 def get_listings(soup):
-    maptags = soup.findAll(class_="maptag")
-    list_string = str(maptags)
-    tag_list = re.findall('\d+', list_string)
-    return tag_list
+    url_list = soup.items
+    list_string = str(url_list)
+    listings = re.findall('http://' + '\w+.\w+.\w+.\w+.\w+.\w+', list_string)
+    return listings
 
 def url_soup(url):
     valid_url = try_url(url)
+    time.sleep(2)
     if valid_url:
         bs_req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         html = urllib2.urlopen(bs_req).read()
@@ -30,17 +32,41 @@ def url_soup(url):
     else:
         print("Invalid URL")
 
-def tags_to_urls(tags, base_url):
-    listing_urls = []
-    for item in tags:
-        listing_urls.append(base_url + item + ".html")
 
-    return listing_urls
-
+def create_exclusion_list(user_exclusions):
+    exclusions = user_exclusions.split(',')
+    exclusions = [s.strip() for s in exclusions]
+    return exclusions
 
 
-def exclusion_list():
-    pass
+def remove_exclusions(listings, exclusions):
+    updated_listings = listings
+    for url in updated_listings:
+        html_string= str(url_soup(url)).lower()
+        time.sleep(1)
+        print("checking " + url)
+        for exclusion in exclusions:
+            if exclusion in html_string:
+                print ("Search exclusion found, removing " + url + " from the list")
+                updated_listings.remove(url)
+                time.sleep(1)
+                break
+    return updated_listings
+
+
+def write_to_file(address_url):
+    """Writes the file from address_url to a file, as specified by the string passed to filename"""
+    filename = address_url
+    filename = filename[33:]
+    if os.name == 'nt':
+        f = open('listings/' + filename, 'wb')
+    else:
+        f = open('listings/' + filename, 'w+')
+    write_req = urllib2.Request(address_url, headers={'User-Agent': 'Mozilla/5.0'})
+    site = urllib2.urlopen(write_req)
+    print("writing file: " + address_url + " to local disk...")
+    f.write(site.read())
+    f.close()
 
 
 def main():
@@ -51,10 +77,8 @@ def main():
         'minSqft': 'minSqft=', 'maxSqft': 'maxSqft='
         }
 
-
     city = raw_input("City?: ")
     url = "http://" + city + ".craigslist.org/search/apa?"
-    base_listing_url = "http://" + city + ".craigslist.org/apa/"
     if raw_input("Search titles only? (y/n): ") == "y":
         url += search_mod['titlesOnly']
 
@@ -101,14 +125,29 @@ def main():
     if num_str is not '':
         url += 'sale_date=' + num_str
 
+    url += "format=rss"
+
+    excluded_terms = raw_input("What terms to exclude from listings (please separate with commas, lower case only)?: ")
+    excluded_terms = create_exclusion_list(excluded_terms)
+    print excluded_terms
+
     print(url)
     raw_soup = url_soup(url)
-    maptag_list = get_listings(raw_soup)
-    listings = tags_to_urls(maptag_list, base_listing_url)
+    listings = get_listings(raw_soup)
+    print listings
     print("number of listings: " + str(len(listings)))
+    print("Removing listings with excluded terms now...\n This may take a while, please be patient.")
+    #print(listings)
+    listings = remove_exclusions(listings, excluded_terms)
+    #print (listings)
+    print(str(len(listings)) + " listings found after removing exclusions. Writing to file...")
 
-    for urls in listings:
-        print urls
+    for item in listings:
+        print("Saving " + item + " to file.")
+        write_to_file(item)
+        time.sleep(1)
+
+
 
 if __name__ == "__main__":
     main()

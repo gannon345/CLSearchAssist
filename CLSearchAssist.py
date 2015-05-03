@@ -22,7 +22,7 @@ def get_listings(soup):
 
 def url_soup(url):
     valid_url = try_url(url)
-    time.sleep(2)
+    time.sleep(1)
     if valid_url:
         bs_req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         html = urllib2.urlopen(bs_req).read()
@@ -56,6 +56,10 @@ def remove_exclusions(listings, exclusions):
 
 def write_to_file(address_url):
     """Writes the file from address_url to a file, as specified by the string passed to filename"""
+
+    if not os.path.isdir('listings'):
+        os.mkdir('listings')
+
     filename = address_url
     filename = filename[33:]
     if os.name == 'nt':
@@ -131,22 +135,20 @@ def main():
     excluded_terms = create_exclusion_list(excluded_terms)
     print excluded_terms
 
-    print(url)
+    print("search path: " + url)
     raw_soup = url_soup(url)
     listings = get_listings(raw_soup)
-    print listings
+
     print("number of listings: " + str(len(listings)))
     print("Removing listings with excluded terms now...\n This may take a while, please be patient.")
-    #print(listings)
+
     listings = remove_exclusions(listings, excluded_terms)
-    #print (listings)
     print(str(len(listings)) + " listings found after removing exclusions. Writing to file...")
 
     for item in listings:
         print("Saving " + item + " to file.")
         write_to_file(item)
         time.sleep(1)
-
 
 
 if __name__ == "__main__":

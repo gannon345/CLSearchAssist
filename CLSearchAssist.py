@@ -4,6 +4,7 @@ import re
 import time
 import os
 
+
 def try_url(url):
     """For testing if the URL is a valid page"""
     try:
@@ -19,6 +20,7 @@ def get_listings(soup):
     list_string = str(url_list)
     listings = re.findall('http://' + '\w+.\w+.\w+.\w+.\w+.\w+', list_string)
     return listings
+
 
 def url_soup(url):
     valid_url = try_url(url)
@@ -42,7 +44,7 @@ def create_exclusion_list(user_exclusions):
 def remove_exclusions(listings, exclusions):
     updated_listings = listings
     for url in updated_listings:
-        html_string= str(url_soup(url)).lower()
+        html_string = str(url_soup(url)).lower()
         time.sleep(1)
         print("checking " + url)
         for exclusion in exclusions:
@@ -76,10 +78,10 @@ def write_to_file(address_url):
 def main():
 
     search_mod = {'titlesOnly': 'srchType=T&', 'hasImage': 'hasPic=1&', 'postedToday': 'postedToday=1&',
-        'catsAllowed': 'pets_cat=1&', 'dogsAllowed': 'pets_dog=1&', 'privateBath': 'private_bath=1&',
-        'minPrice': 'minAsk=', 'maxPrice': 'maxAsk=', 'bedrooms': 'bedrooms=','bathrooms': 'bathrooms=',
-        'minSqft': 'minSqft=', 'maxSqft': 'maxSqft='
-        }
+                  'catsAllowed': 'pets_cat=1&', 'dogsAllowed': 'pets_dog=1&', 'privateBath': 'private_bath=1&',
+                  'minPrice': 'minAsk=', 'maxPrice': 'maxAsk=', 'bedrooms': 'bedrooms=', 'bathrooms': 'bathrooms=',
+                  'minSqft': 'minSqft=', 'maxSqft': 'maxSqft='
+                  }
 
     city = raw_input("City?: ")
     url = "http://" + city + ".craigslist.org/search/apa?"

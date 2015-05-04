@@ -5,16 +5,6 @@ import time
 import os
 
 
-def try_url(url):
-    """For testing if the URL is a valid page"""
-    try:
-        req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        urllib2.urlopen(req)
-        return True
-    except urllib2.URLError:
-        return False
-
-
 def get_listings(soup):
     """Pulls all html links for apartment listings from the Craigslist RSS, then returns them as a list"""
     url_list = soup.items
@@ -24,16 +14,16 @@ def get_listings(soup):
 
 
 def url_soup(url):
-    """Gets the BeautifulSoup "soup" for the URL requested and returns it"""
-    valid_url = try_url(url)
-    time.sleep(1)
-    if valid_url:
+    """Attempts to get the BeautifulSoup "soup" for the URL requested and returns it. If URL is deemed not valid,
+       throws a URL error exception instead"""
+    try:
         bs_req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         html = urllib2.urlopen(bs_req).read()
         soup = BeautifulSoup(html)
+        time.sleep(1)
         return soup
 
-    else:
+    except urllib2.URLError:
         print("Invalid URL")
 
 

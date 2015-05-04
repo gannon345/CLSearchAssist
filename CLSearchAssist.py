@@ -16,6 +16,7 @@ def try_url(url):
 
 
 def get_listings(soup):
+    """Pulls all html links for apartment listings from the Craigslist RSS, then returns them as a list"""
     url_list = soup.items
     list_string = str(url_list)
     listings = re.findall('http://' + '\w+.\w+.\w+.\w+.\w+.\w+', list_string)
@@ -23,6 +24,7 @@ def get_listings(soup):
 
 
 def url_soup(url):
+    """Gets the BeautifulSoup "soup" for the URL requested and returns it"""
     valid_url = try_url(url)
     time.sleep(1)
     if valid_url:
@@ -36,12 +38,17 @@ def url_soup(url):
 
 
 def create_exclusion_list(user_exclusions):
+    """Takes a predefined list of words in a string, splits to a list on comma and strips extra white space.
+       Then returns the list."""
     exclusions = user_exclusions.split(',')
     exclusions = [s.strip() for s in exclusions]
     return exclusions
 
 
 def remove_exclusions(listings, exclusions):
+    """Takes in list of URLs for apartments and the list of words for excluding items. Iterates through the URLs,
+       running url_soup() and parsing through for the excluded words. If an exclusion is found, the url is removed from
+       the list. After all items are iterated, the new list is returned"""
     updated_listings = listings
     for url in updated_listings:
         html_string = str(url_soup(url)).lower()
@@ -57,7 +64,8 @@ def remove_exclusions(listings, exclusions):
 
 
 def write_to_file(address_url):
-    """Writes the file from address_url to a file, as specified by the string passed to filename"""
+    """Writes the site page from address_url to a file, in a separate folder called "listings" and if the "listings"
+       folder does not exist, creates it."""
 
     if not os.path.isdir('listings'):
         os.mkdir('listings')
